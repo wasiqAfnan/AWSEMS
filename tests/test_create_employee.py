@@ -5,13 +5,13 @@ from lambdas.employees.create_employee import lambda_handler
 
 event = {
     "body": json.dumps({
-        "empId": "EMP003",
-        "name": "Abhijeet",
-        "email": "abhijeet@gmail.com",
-        "contactNo": "1234567890",
-        "role": "Cloud Engineer",
-        "department": "Cloud",
-        "salary": 400000
+        "empId": "EMP004",
+        "name": "Nilarpan",
+        "email": "nilarpan@gmail.com",
+        "contactNo": "1234567891",
+        "role": "Database Admin",
+        "department": "Database",
+        "salary": 500000
     })
 }
 
