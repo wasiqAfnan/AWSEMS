@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         # Insert employee into MongoDB
         result = employees_collection.insert_one(employee_data)
 
-        # Add MongoDB generated ID to response
+        # Convert MongoDB ObjectId to string
         employee_data["_id"] = str(result.inserted_id)
 
         return success_response(
@@ -89,7 +89,10 @@ def lambda_handler(event, context):
         else:
             message = "Employee with the same unique field already exists"
 
-        return error_response(409, message)
+        return error_response(
+            409,
+            message
+        )
 
     except Exception as e:
         print(f"Error creating employee: {e}")

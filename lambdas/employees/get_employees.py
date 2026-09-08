@@ -8,11 +8,14 @@ from utils.response_handler import (
 def lambda_handler(event, context):
     try:
         # Fetch all employees from MongoDB
-        employees = list(employees_collection.find())
-
-        # Convert MongoDB ObjectId to string
-        for employee in employees:
-            employee["_id"] = str(employee["_id"])
+        employees = list(
+            employees_collection.find(
+                {},
+                {
+                    "_id": 0
+                }
+            )
+        )
 
         return success_response(
             200,
