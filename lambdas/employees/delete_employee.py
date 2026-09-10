@@ -1,0 +1,60 @@
+from db.mongodb import employees_collection
+from utils.response_handler import (
+    success_response,
+    error_response,
+)
+from utils.validators import validate_emp_id
+
+
+def lambda_handler(event, context):
+    try:
+        # Extract Employee ID from path parameters
+        path_parameters = event.get("pathParameters") or {}
+        emp_id = path_parameters.get("empId")
+
+        if not emp_id:
+            return error_response(
+                400,
+                "Employee ID is required"
+            )
+
+        # Validate Employee ID
+        emp_id = validate_emp_id(emp_id)
+
+        # Check if employee exists
+        employee = employees_collection.find_one(
+            {"empId": emp_id}
+        )
+
+        if not employee:
+            return error_response(
+                404,
+                "Employee not found"
+            )
+
+        # Delete employee
+        employees_collection.delete_one(
+            {"empId": emp_id}
+        )
+
+        return success_response(
+            200,
+            "Employee deleted successfully",
+            {
+                "empId": emp_id
+            }
+        )
+
+    except ValueError as e:
+        return error_response(
+            400,
+            f"Invalid employee ID. {str(e)}"
+        )
+
+    except Exception as e:
+        print(f"Error deleting employee: {e}")
+
+        return error_response(
+            500,
+            "Internal server error"
+        )
