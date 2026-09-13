@@ -38,11 +38,23 @@ func Setup(
 	employeeHandler := handler.NewEmployeeHandler(apiGatewayClient)
 
 	mux.Handle(
-		"/api/employees",
+		"GET /api/employees",
 		authMiddleware(http.HandlerFunc(employeeHandler.GetEmployees)),
 	)
 	mux.Handle(
-		"/api/employees/search",
+		"POST /api/employees",
+		authMiddleware(http.HandlerFunc(employeeHandler.CreateEmployee)),
+	)
+	mux.Handle(
+		"GET /api/employees/search",
 		authMiddleware(http.HandlerFunc(employeeHandler.SearchEmployees)),
+	)
+	mux.Handle(
+		"PATCH /api/employees/{empId}",
+		authMiddleware(http.HandlerFunc(employeeHandler.UpdateEmployee)),
+	)
+	mux.Handle(
+		"DELETE /api/employees/{empId}",
+		authMiddleware(http.HandlerFunc(employeeHandler.DeleteEmployee)),
 	)
 }
