@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 
+	"awsems/internal/apigateway"
 	"awsems/internal/cognito"
 	"awsems/internal/handler"
 	"awsems/internal/middleware"
@@ -12,6 +13,7 @@ func Setup(
 	mux *http.ServeMux,
 	cognitoClient *cognito.Client,
 	jwtVerifier *cognito.JWTVerifier,
+	apiGatewayClient *apigateway.Client,
 ) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("AWSEMS server is running"))
@@ -26,9 +28,21 @@ func Setup(
 	// Authentication middleware for protected routes
 	authMiddleware := middleware.Authentication(jwtVerifier)
 
-	// Employee routes will be protected with authMiddleware
+	// Authentication routes (protected)
 	mux.Handle(
 		"/api/auth/logout",
 		authMiddleware(http.HandlerFunc(authHandler.Logout)),
+	)
+
+	// Employee routes (protected)
+	employeeHandler := handler.NewEmployeeHandler(apiGatewayClient)
+
+	mux.Handle(
+		"/api/employees",
+		authMiddleware(http.HandlerFunc(employeeHandler.GetEmployees)),
+	)
+	mux.Handle(
+		"/api/employees/search",
+		authMiddleware(http.HandlerFunc(employeeHandler.SearchEmployees)),
 	)
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"awsems/internal/apigateway"
 	"awsems/internal/cognito"
 	"awsems/internal/config"
 	"awsems/internal/middleware"
@@ -28,11 +29,14 @@ func main() {
 
 	log.Println("Cognito OIDC provider initialized successfully")
 
+	// Create API Gateway client
+	apiGatewayClient := apigateway.NewClient(cfg)
+
 	// Create HTTP multiplexer
 	mux := http.NewServeMux()
 
 	// Register routes
-	routes.Setup(mux, cognitoClient, jwtVerifier)
+	routes.Setup(mux, cognitoClient, jwtVerifier, apiGatewayClient)
 
 	// Add logging middleware
 	muxWithLogging := middleware.Logging(mux)
