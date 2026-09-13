@@ -35,10 +35,31 @@ func NewJWTVerifier(cfg *config.Config) (*JWTVerifier, error) {
 }
 
 func (v *JWTVerifier) VerifyAccessToken(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(
+	token, err := jwt.Parse(
 		tokenString,
 		v.JWKS.Keyfunc,
 		jwt.WithValidMethods([]string{"RS256"}),
 		jwt.WithIssuer(v.Issuer),
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid token claims")
+	}
+
+	tokenUse, ok := claims["token_use"].(string)
+	if !ok || tokenUse != "access" {
+		return nil, fmt.Errorf("invalid token type")
+	}
+
+	clientID, ok := claims["client_id"].(string)
+	if !ok || clientID != v.ClientID {
+		return nil, fmt.Errorf("invalid client")
+	}
+
+	return token, nil
 }

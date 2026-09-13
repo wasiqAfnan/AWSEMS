@@ -6,6 +6,8 @@ import (
 
 	"awsems/internal/cognito"
 
+	"net/url"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
@@ -144,4 +146,59 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+
+	// Delete access token cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
+
+	// Delete refresh token cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
+
+	// Delete temporary OAuth session cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth_session",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
+
+	// Build Cognito logout URL
+	logoutURL := h.Cognito.OAuthConfig.Endpoint.AuthURL
+
+	u, err := url.Parse(logoutURL)
+	if err != nil {
+		http.Error(w, "Failed to create logout URL", http.StatusInternalServerError)
+		return
+	}
+
+	u.Path = "/logout"
+
+	query := u.Query()
+	query.Set("client_id", h.Cognito.OAuthConfig.ClientID)
+	query.Set("logout_uri", "http://localhost:5173")
+	u.RawQuery = query.Encode()
+
+	// Redirect to Cognito
+	http.Redirect(w, r, u.String(), http.StatusFound)
 }

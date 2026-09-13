@@ -5,6 +5,7 @@ import (
 
 	"awsems/internal/cognito"
 	"awsems/internal/handler"
+	"awsems/internal/middleware"
 )
 
 func Setup(
@@ -23,7 +24,11 @@ func Setup(
 	mux.HandleFunc("/api/auth/callback", authHandler.Callback)
 
 	// Authentication middleware for protected routes
-	// authMiddleware := middleware.Authentication(jwtVerifier)
+	authMiddleware := middleware.Authentication(jwtVerifier)
 
 	// Employee routes will be protected with authMiddleware
+	mux.Handle(
+		"/api/auth/logout",
+		authMiddleware(http.HandlerFunc(authHandler.Logout)),
+	)
 }
