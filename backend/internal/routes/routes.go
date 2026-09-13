@@ -5,12 +5,14 @@ import (
 
 	"awsems/internal/apigateway"
 	"awsems/internal/cognito"
+	"awsems/internal/config"
 	"awsems/internal/handler"
 	"awsems/internal/middleware"
 )
 
 func Setup(
 	mux *http.ServeMux,
+	cfg *config.Config,
 	cognitoClient *cognito.Client,
 	jwtVerifier *cognito.JWTVerifier,
 	apiGatewayClient *apigateway.Client,
@@ -20,7 +22,7 @@ func Setup(
 	})
 
 	// Authentication routes
-	authHandler := handler.NewAuthHandler(cognitoClient)
+	authHandler := handler.NewAuthHandler(cognitoClient, cfg)
 
 	mux.HandleFunc("/api/auth/login", authHandler.Login)
 	mux.HandleFunc("/api/auth/callback", authHandler.Callback)
