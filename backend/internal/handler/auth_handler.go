@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 
 	"awsems/internal/cognito"
+	"awsems/internal/utils"
 
 	"net/url"
 
@@ -25,13 +25,21 @@ func NewAuthHandler(cognitoClient *cognito.Client) *AuthHandler {
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := cognito.CreateOAuthSession()
 	if err != nil {
-		http.Error(w, "Failed to create OAuth session", http.StatusInternalServerError)
+		utils.Error(
+			w,
+			http.StatusInternalServerError,
+			"Failed to create OAuth session",
+		)
 		return
 	}
 
 	session, ok := cognito.GetOAuthSession(sessionID)
 	if !ok {
-		http.Error(w, "Failed to create OAuth session", http.StatusInternalServerError)
+		utils.Error(
+			w,
+			http.StatusInternalServerError,
+			"Failed to create OAuth session",
+		)
 		return
 	}
 
@@ -58,24 +66,24 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 
 	if code == "" || state == "" {
-		http.Error(w, "Missing code or state", http.StatusBadRequest)
+		utils.Error(w, http.StatusBadRequest, "Missing code or state")
 		return
 	}
 
 	cookie, err := r.Cookie("oauth_session")
 	if err != nil {
-		http.Error(w, "OAuth session not found", http.StatusBadRequest)
+		utils.Error(w, http.StatusBadRequest, "OAuth session not found")
 		return
 	}
 
 	session, ok := cognito.GetOAuthSession(cookie.Value)
 	if !ok {
-		http.Error(w, "OAuth session expired or invalid", http.StatusBadRequest)
+		utils.Error(w, http.StatusBadRequest, "OAuth session expired or invalid")
 		return
 	}
 
 	if state != session.State {
-		http.Error(w, "Invalid state", http.StatusBadRequest)
+		utils.Error(w, http.StatusBadRequest, "Invalid state")
 		return
 	}
 
@@ -85,15 +93,19 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		oauth2.VerifierOption(session.CodeVerifier),
 	)
 	if err != nil {
-		http.Error(w, "Failed to exchange authorization code", http.StatusBadRequest)
+		utils.Error(
+			w,
+			http.StatusBadRequest,
+			"Failed to exchange authorization code",
+		)
 		return
 	}
 
-	log.Printf("OAuth session cookie: %s", cookie.Value)
+	// log.Printf("OAuth session cookie: %s", cookie.Value)
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		http.Error(w, "ID token not found", http.StatusBadRequest)
+		utils.Error(w, http.StatusBadRequest, "ID token not found")
 		return
 	}
 
@@ -102,7 +114,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	}).Verify(r.Context(), rawIDToken)
 
 	if err != nil {
-		http.Error(w, "Invalid ID token", http.StatusUnauthorized)
+		utils.Error(w, http.StatusUnauthorized, "Invalid ID token")
 		return
 	}
 
@@ -112,7 +124,11 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := idToken.Claims(&claims); err != nil {
-		http.Error(w, "Failed to read user information", http.StatusInternalServerError)
+		utils.Error(
+			w,
+			http.StatusInternalServerError,
+			"Failed to read user information",
+		)
 		return
 	}
 
@@ -188,7 +204,11 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	u, err := url.Parse(logoutURL)
 	if err != nil {
-		http.Error(w, "Failed to create logout URL", http.StatusInternalServerError)
+		utils.Error(
+			w,
+			http.StatusInternalServerError,
+			"Failed to create logout URL",
+		)
 		return
 	}
 

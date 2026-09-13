@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"awsems/internal/cognito"
+	"awsems/internal/utils"
 )
 
 func Authentication(jwtVerifier *cognito.JWTVerifier) func(http.Handler) http.Handler {
@@ -12,13 +13,13 @@ func Authentication(jwtVerifier *cognito.JWTVerifier) func(http.Handler) http.Ha
 
 			cookie, err := r.Cookie("access_token")
 			if err != nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				utils.Error(w, http.StatusUnauthorized, "Access token not found")
 				return
 			}
 
 			_, err = jwtVerifier.VerifyAccessToken(cookie.Value)
 			if err != nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				utils.Error(w, http.StatusUnauthorized, "Access token invalid or expired")
 				return
 			}
 

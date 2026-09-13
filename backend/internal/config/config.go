@@ -17,6 +17,7 @@ type Config struct {
 	CognitoClientSecret    string
 	CognitoDomain          string
 	CognitoRedirectURI     string
+	CognitoLogoutURI       string
 	CognitoOpenIDConfigURL string
 
 	APIGatewayBaseURL string
@@ -36,6 +37,7 @@ func Load() (*Config, error) {
 		CognitoClientSecret:    os.Getenv("COGNITO_CLIENT_SECRET"),
 		CognitoDomain:          os.Getenv("COGNITO_DOMAIN"),
 		CognitoRedirectURI:     os.Getenv("COGNITO_REDIRECT_URI"),
+		CognitoLogoutURI:       os.Getenv("COGNITO_LOGOUT_URI"),
 		CognitoOpenIDConfigURL: os.Getenv("COGNITO_OPENID_CONFIG_URL"),
 		APIGatewayBaseURL:      os.Getenv("API_GATEWAY_BASE_URL"),
 	}
@@ -57,6 +59,7 @@ func validate(config *Config) error {
 		"COGNITO_CLIENT_SECRET":     config.CognitoClientSecret,
 		"COGNITO_DOMAIN":            config.CognitoDomain,
 		"COGNITO_REDIRECT_URI":      config.CognitoRedirectURI,
+		"COGNITO_LOGOUT_URI":        config.CognitoLogoutURI,
 		"COGNITO_OPENID_CONFIG_URL": config.CognitoOpenIDConfigURL,
 		"API_GATEWAY_BASE_URL":      config.APIGatewayBaseURL,
 	}
