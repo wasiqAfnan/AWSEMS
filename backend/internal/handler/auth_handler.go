@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"awsems/internal/cognito"
+	"awsems/internal/config"
 	"awsems/internal/utils"
 
 	"net/url"
@@ -14,11 +15,13 @@ import (
 
 type AuthHandler struct {
 	Cognito *cognito.Client
+	Config  *config.Config
 }
 
-func NewAuthHandler(cognitoClient *cognito.Client) *AuthHandler {
+func NewAuthHandler(cognitoClient *cognito.Client, cfg *config.Config) *AuthHandler {
 	return &AuthHandler{
 		Cognito: cognitoClient,
+		Config:  cfg,
 	}
 }
 
@@ -161,7 +164,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, h.Config.FrontendURL, http.StatusFound)
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -216,7 +219,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	query := u.Query()
 	query.Set("client_id", h.Cognito.OAuthConfig.ClientID)
-	query.Set("logout_uri", "http://localhost:5173")
+	query.Set("logout_uri", h.Config.CognitoLogoutURI)
 	u.RawQuery = query.Encode()
 
 	// Redirect to Cognito

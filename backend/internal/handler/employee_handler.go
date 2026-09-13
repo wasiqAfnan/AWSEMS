@@ -96,14 +96,28 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	body, statusCode, err := h.APIGateway.Post("/employees", payload)
+	body, gwStatusCode, err := h.APIGateway.Post("/employees", payload)
 	if err != nil {
 		utils.Error(w, http.StatusInternalServerError, "Failed to reach API Gateway")
 		return
 	}
 
+	// The Lambda might return a 200 HTTP status but contain an error status code in the JSON body.
+	var resp struct {
+		StatusCode  int `json:"statusCode"`
+		Status_Code int `json:"status_code"` // handle both cases
+	}
+	finalStatusCode := gwStatusCode
+	if err := json.Unmarshal(body, &resp); err == nil {
+		if resp.StatusCode >= 400 {
+			finalStatusCode = resp.StatusCode
+		} else if resp.Status_Code >= 400 {
+			finalStatusCode = resp.Status_Code
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(finalStatusCode)
 	w.Write(body)
 }
 
@@ -142,14 +156,27 @@ func (h *EmployeeHandler) UpdateEmployee(w http.ResponseWriter, r *http.Request)
 	}
 
 	path := "/employees/" + url.PathEscape(empId)
-	body, statusCode, err := h.APIGateway.Patch(path, payload)
+	body, gwStatusCode, err := h.APIGateway.Patch(path, payload)
 	if err != nil {
 		utils.Error(w, http.StatusInternalServerError, "Failed to reach API Gateway")
 		return
 	}
 
+	var resp struct {
+		StatusCode  int `json:"statusCode"`
+		Status_Code int `json:"status_code"`
+	}
+	finalStatusCode := gwStatusCode
+	if err := json.Unmarshal(body, &resp); err == nil {
+		if resp.StatusCode >= 400 {
+			finalStatusCode = resp.StatusCode
+		} else if resp.Status_Code >= 400 {
+			finalStatusCode = resp.Status_Code
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(finalStatusCode)
 	w.Write(body)
 }
 

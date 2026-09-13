@@ -21,6 +21,7 @@ type Config struct {
 	CognitoOpenIDConfigURL string
 
 	APIGatewayBaseURL string
+	FrontendURL       string
 }
 
 func Load() (*Config, error) {
@@ -40,6 +41,7 @@ func Load() (*Config, error) {
 		CognitoLogoutURI:       os.Getenv("COGNITO_LOGOUT_URI"),
 		CognitoOpenIDConfigURL: os.Getenv("COGNITO_OPENID_CONFIG_URL"),
 		APIGatewayBaseURL:      os.Getenv("API_GATEWAY_BASE_URL"),
+		FrontendURL:            os.Getenv("FRONTEND_URL"),
 	}
 
 	if err := validate(config); err != nil {
@@ -62,6 +64,7 @@ func validate(config *Config) error {
 		"COGNITO_LOGOUT_URI":        config.CognitoLogoutURI,
 		"COGNITO_OPENID_CONFIG_URL": config.CognitoOpenIDConfigURL,
 		"API_GATEWAY_BASE_URL":      config.APIGatewayBaseURL,
+		"FRONTEND_URL":              config.FrontendURL,
 	}
 
 	for name, value := range required {

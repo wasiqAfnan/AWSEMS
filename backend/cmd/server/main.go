@@ -36,15 +36,15 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Register routes
-	routes.Setup(mux, cognitoClient, jwtVerifier, apiGatewayClient)
+	routes.Setup(mux, cfg, cognitoClient, jwtVerifier, apiGatewayClient)
 
-	// Add logging middleware
-	muxWithLogging := middleware.Logging(mux)
+	// Add CORS and logging middleware
+	handler := middleware.CORS(cfg, middleware.Logging(mux))
 
 	// Create server
 	server := &http.Server{
 		Addr:    ":" + cfg.AppPort,
-		Handler: muxWithLogging,
+		Handler: handler,
 	}
 
 	log.Printf("Server running on port %s", cfg.AppPort)
