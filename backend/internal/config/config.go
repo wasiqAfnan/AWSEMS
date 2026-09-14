@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"awsems/internal/utils"
+
 	"github.com/joho/godotenv"
 )
 
@@ -25,12 +27,22 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {
-		return nil, fmt.Errorf("failed to load .env: %w", err)
+	appEnv := os.Getenv("APP_ENV")
+
+	if appEnv == "" || appEnv == "development" {
+		if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to load .env: %w", err)
+		}
+
+		appEnv = os.Getenv("APP_ENV")
+	}
+
+	if appEnv == "production" {
+		return loadProductionConfig()
 	}
 
 	config := &Config{
-		AppEnv:                 os.Getenv("APP_ENV"),
+		AppEnv:                 appEnv,
 		AppPort:                os.Getenv("APP_PORT"),
 		CognitoRegion:          os.Getenv("COGNITO_REGION"),
 		CognitoUserPoolID:      os.Getenv("COGNITO_USER_POOL_ID"),
@@ -51,6 +63,75 @@ func Load() (*Config, error) {
 	return config, nil
 }
 
+func loadProductionConfig() (*Config, error) {
+	config := &Config{
+		AppEnv:  "production",
+		AppPort: os.Getenv("APP_PORT"),
+	}
+
+	var err error
+
+	config.CognitoRegion, err = getParameter("/ems/prod/cognito-region")
+	if err != nil {
+		return nil, err
+	}
+
+	config.CognitoUserPoolID, err = getParameter("/ems/prod/cognito-user-pool-id")
+	if err != nil {
+		return nil, err
+	}
+
+	config.CognitoClientID, err = getParameter("/ems/prod/cognito-client-id")
+	if err != nil {
+		return nil, err
+	}
+
+	config.CognitoClientSecret, err = getParameter("/ems/prod/cognito-client-secret")
+	if err != nil {
+		return nil, err
+	}
+
+	config.CognitoDomain, err = getParameter("/ems/prod/cognito-domain")
+	if err != nil {
+		return nil, err
+	}
+
+	config.CognitoRedirectURI, err = getParameter("/ems/prod/cognito-redirect-uri")
+	if err != nil {
+		return nil, err
+	}
+
+	config.CognitoLogoutURI, err = getParameter("/ems/prod/cognito-logout-uri")
+	if err != nil {
+		return nil, err
+	}
+
+	config.CognitoOpenIDConfigURL, err = getParameter("/ems/prod/cognito-openid-config-url")
+	if err != nil {
+		return nil, err
+	}
+
+	config.APIGatewayBaseURL, err = getParameter("/ems/prod/api-gateway-base-url")
+	if err != nil {
+		return nil, err
+	}
+
+	config.FrontendURL, err = getParameter("/ems/prod/frontend-url")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validate(config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}
+
+func getParameter(name string) (string, error) {
+	return utils.GetParameter(name, true)
+}
+
 func validate(config *Config) error {
 	required := map[string]string{
 		"APP_ENV":                   config.AppEnv,
@@ -69,7 +150,7 @@ func validate(config *Config) error {
 
 	for name, value := range required {
 		if value == "" {
-			return fmt.Errorf("required environment variable %s is not set", name)
+			return fmt.Errorf("required configuration %s is not set", name)
 		}
 	}
 
