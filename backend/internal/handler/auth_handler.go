@@ -51,7 +51,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Value:    sessionID,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   120,
 	})
@@ -142,7 +142,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		Value:    token.AccessToken,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, // true in production with HTTPS
+		Secure:   true, // true in production with HTTPS
 		SameSite: http.SameSiteLaxMode,
 		Expires:  token.Expiry,
 	})
@@ -152,7 +152,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		Value:    token.RefreshToken,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
 

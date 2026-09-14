@@ -14,9 +14,9 @@ const api = axios.create({
 export const loginUrl = `${API_BASE_URL}/auth/login`
 export const logoutUrl = `${API_BASE_URL}/auth/logout`
 
-console.log('API BASE URL:', API_BASE_URL)
-console.log('LOGIN URL:', loginUrl)
-console.log('LOGOUT URL:', logoutUrl)
+// console.log('API BASE URL:', API_BASE_URL)
+// console.log('LOGIN URL:', loginUrl)
+// console.log('LOGOUT URL:', logoutUrl)
 
 
 // Employee API
