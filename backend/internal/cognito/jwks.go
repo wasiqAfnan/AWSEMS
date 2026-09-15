@@ -46,16 +46,19 @@ func (v *JWTVerifier) VerifyAccessToken(tokenString string) (*jwt.Token, error) 
 		return nil, err
 	}
 
+	// Verify the token is valid for the given issuer
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, fmt.Errorf("invalid token claims")
 	}
 
+	// Verify the token has the correct type
 	tokenUse, ok := claims["token_use"].(string)
 	if !ok || tokenUse != "access" {
 		return nil, fmt.Errorf("invalid token type")
 	}
 
+	// Verify the token has the correct client
 	clientID, ok := claims["client_id"].(string)
 	if !ok || clientID != v.ClientID {
 		return nil, fmt.Errorf("invalid client")
